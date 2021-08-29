@@ -90,6 +90,42 @@ WHEN 'OF' THEN 'Outfield'
 		WHEN'C' THEN 'Battery'
 		ELSE POS END)
 		FROM fielding
-		HAVING yearid = 2016
-		GROUP BY GROUPING SETS ((POS,PO),(POS),(PO),());
+		WHERE yearid = 2016
+		GROUP BY pos;
+		
+----5		
 
+select 
+yearid ,
+hr,
+so,
+soa,
+g
+from teams
+where yearid BETWEEN 1920 AND 1929;
+
+select *
+from teams
+
+WITH sohr_game as
+(SELECT 
+ 	FLOOR(yearid/10) * 10 AS decade,	
+ 	ROUND(AVG(soa+so),2) AS avg_strikeouts,
+	ROUND(AVG(hr),2) AS avg_homeruns
+	FROM teams
+	GROUP BY decade)
+		SELECT *
+		FROM sohr_game
+		WHERE decade >= 1920
+		ORDER BY decade ASC;
+		
+---6		
+SELECT
+playerid,
+sb,
+cs,
+FORMAT((CS/SB),'P') AS success_rate  
+FROM batting
+WHERE yearid = 2016 AND sb > 20
+
+select * from batting
