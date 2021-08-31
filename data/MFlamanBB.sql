@@ -58,6 +58,7 @@ SELECT *
 FROM teams
 WHERE teamid = 'SLA';
 ---3
+
 SELECT 
 c.schoolid,
 s.salary,
@@ -69,7 +70,20 @@ JOIN people as p
 ON p.playerid = c.playerid
 WHERE c.schoolid = 'vandy'
 AND s.salary IS NOT NULL
-ORDER BY salary DESC;
+GROUP BY p.namegiven, c.schoolid,s.salary
+ORDER BY s.salary DESC;
+
+/*--SELECT 
+SUM(s.salary) AS sumsalary,
+p.namegiven
+FROM collegeplaying as c
+LEFT JOIN salaries as s
+ON c.playerid = s.playerid
+JOIN people as p
+ON p.playerid = c.playerid
+WHERE c.schoolid = 'vandy'
+ORDER BY sumsalary DESC
+GROUP BY p.namegiven;*/
 
 --- 4
 
@@ -79,7 +93,7 @@ FROM fielding;
 
 
 SELECT
-COUNT(PO),
+SUM(PO),
 (SELECT CASE pos
 WHEN 'OF' THEN 'Outfield'
 		WHEN 'SS' THEN 'Infield'
@@ -92,6 +106,22 @@ WHEN 'OF' THEN 'Outfield'
 		FROM fielding
 		WHERE yearid = 2016
 		GROUP BY pos;
+		
+SELECT
+SUM(PO),
+(SELECT CASE pos
+WHEN 'OF' THEN 'Outfield'
+		WHEN 'SS' THEN 'Infield' 
+		WHEN'1B' THEN 'Infield'
+		WHEN '2B' THEN 'Infield'
+		WHEN'3B' THEN 'Infield'
+		WHEN 'P' THEN'Battery'
+		WHEN'C' THEN 'Battery'
+		ELSE POS END)
+		
+		FROM fielding
+		WHERE yearid = 2016
+		GROUP BY pos;		
 		
 ----5		
 
@@ -121,11 +151,18 @@ WITH sohr_game as
 		
 ---6		
 SELECT
-playerid,
-sb,
-cs,
-FORMAT((CS/SB),'P') AS success_rate  
-FROM batting
+b.playerid,
+p.namegiven,
+b.sb,
+b.cs,
+ROUND((b.cs/b.sb)*100,2) AS success_rate
+FROM batting AS b
+JOIN people AS p
+ON b.playerid = p.playerid
 WHERE yearid = 2016 AND sb > 20
 
 select * from batting
+
+---7
+
+
