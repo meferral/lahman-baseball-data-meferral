@@ -161,7 +161,7 @@ b.playerid,
 p.namegiven,
 b.sb,
 b.cs,
-ROUND((b.cs/b.sb)*100,2) AS success_rate
+ROUND((b.cs/b.sb),2)::FLOAT*100 AS success_rate
 FROM batting AS b
 JOIN people AS p
 ON b.playerid = p.playerid
