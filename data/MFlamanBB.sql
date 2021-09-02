@@ -329,12 +329,20 @@ from schools
 WITH salaries AS
 (SELECT 
 Teamid,
-sum(salary) as totalsalary
+sum(salary) as totalsalary,
+yearid
 FROM salaries WHERE yearid > '2000'
-GROUP BY teamid ORDER BY totalsalary DESC)
+GROUP BY CUBE (yearid, teamid) ORDER BY totalsalary DESC)
 	SELECT
-		w
-		FROM teams
+		w,
+		totalsalary,
+		t.teamid,
+		t.yearid
+		FROM teams AS t
+		FULL JOIN salaries AS s
+		ON t.teamid = s.teamid
+		WHERE TOTALSALARY is not null
+		ORDER BY totalsalary DESC
 
 
 
