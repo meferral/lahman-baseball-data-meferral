@@ -26,6 +26,8 @@ from collegeplaying;
 SELECT MIN(yearid)
 FROM salaries
 
+-- Better Answer
+SELECT MAX(yearid), MIN(yearid) FROM teams 
 ---1
 
 SELECT *
@@ -57,6 +59,19 @@ WHERE playerid ='gaedeed01';
 SELECT *
 FROM teams
 WHERE teamid = 'SLA';
+
+--- BETTER WAY
+SELECT
+namegiven,
+height,
+debut,
+finalgame,
+teamid
+FROM people AS p
+INNER JOIN appearances AS a
+ON p.playerid = a.playerid
+ORDER BY height
+LIMIT 1
 ---3
 
 SELECT 
@@ -72,6 +87,42 @@ WHERE c.schoolid = 'vandy'
 AND s.salary IS NOT NULL
 GROUP BY p.namegiven, c.schoolid,s.salary
 ORDER BY s.salary DESC;
+
+SELECT 
+c.schoolid,
+p.namegiven,
+SUM(s.salary) over (PARTITION BY p.namegiven) AS majorsalary
+FROM collegeplaying as c
+LEFT JOIN salaries as s
+ON c.playerid = s.playerid
+JOIN people as p
+ON p.playerid = c.playerid
+WHERE c.schoolid = 'vandy'
+AND s.salary IS NOT NULL
+GROUP BY p.namegiven, c.schoolid,s.salary
+ORDER BY majorsalary DESC;
+
+---MUCH BETTER WAY
+SELECT CONCAT (p.namefirst,' ', p.namelast) AS play_name,
+		SUM(s.salary::numeric::money) AS total_earned
+FROM people AS p
+JOIN salaries AS s
+ON p.playerid = s.playerid
+WHERE p.playerid IN (SELECT cp.playerid
+					FROM collegeplaying AS CP
+					WHERE cp.schoolid = 'vandy')
+GROUP BY play_name
+ORDER BY total_earned DESC
+
+
+select 
+	p.namefirst,
+	p.namelast,
+	SUM(DISTINCT salary) AS s1, s2.schoolname
+FROM people AS p
+
+
+select * from collegeplaying
 
 /*--SELECT 
 SUM(s.salary) AS sumsalary,
@@ -90,7 +141,7 @@ GROUP BY p.namegiven;*/
 SELECT *
 FROM fielding;
 
-SELECT
+/*SELECT
 SUM(PO),
 (SELECT CASE WHEN pos = 'OF' THEN 'Outfield'
 		WHEN pos = 'SS' or pos = '1B' or pos = '2B' or pos = '3B' THEN 'Infield'
@@ -98,8 +149,8 @@ SUM(PO),
 		END AS "positions")
 		FROM fielding
 		WHERE yearid = 2016
-		GROUP BY pos;
-		
+		GROUP BY pos;*/
+			
 SELECT
 SUM(PO),
 (SELECT CASE WHEN pos IN ('OF') THEN 'Outfield'
@@ -155,17 +206,28 @@ WITH sohr_game AS
 		WHERE decade >= 1920
 		ORDER BY decade ASC;
 		
----6		
-SELECT
+---6
+WITH stolen_success AS
+(SELECT
 b.playerid,
 p.namegiven,
-b.sb,
+b.sb::NUMERIC,
 b.cs,
-ROUND((b.cs/b.sb),2)::FLOAT*100 AS success_rate
+b.cs + b.sb::NUMERIC AS attempts 
 FROM batting AS b
 JOIN people AS p
 ON b.playerid = p.playerid
-WHERE yearid = 2016 AND sb > 20
+WHERE yearid = 2016 AND sb > 20)
+	SELECT
+	playerid,
+	namegiven,
+	sb,
+	cs,
+	ROUND(sb/attempts*100,2) AS per_successful
+	FROM stolen_success
+	ORDER BY per_successful DESC;
+	
+	
 
 select * from batting
 
@@ -244,7 +306,7 @@ SELECT
 	MAX(w)
 	FROM teams
 	WHERE yearid BETWEEN 1970 AND 2016
-	GROUP BY yearid
+	GROUP BY yearid, name, wswin
 	
 ----8
 SELECT 
@@ -297,13 +359,16 @@ JOIN managers AS m
 ON m.playerid = p.playerid
 WHERE awardid = 'TSN Manager of the Year' and am.lgid = 'AL' OR am.lgid = 'NL')
 	SELECT DISTINCT(namegiven),
-	teamid,
-	yearid,
-	lgid,
-	playerid
-	FROM goodmanager
-
-
+	gm.yearid,
+	gm.lgid,
+	t.name
+	FROM goodmanager as gm
+	JOIN teams AS t
+	ON gm.teamid = t.teamid
+	
+	
+select * from teams
+select * from managers
 --- EXTRA
 SELECT 
 s.schoolname,
@@ -335,13 +400,15 @@ FROM salaries WHERE yearid > '2000'
 GROUP BY CUBE (yearid, teamid) ORDER BY totalsalary DESC)
 	SELECT
 		w,
+		l,
+		l>w AS losers,
 		totalsalary,
 		t.teamid,
 		t.yearid
 		FROM teams AS t
 		FULL JOIN salaries AS s
 		ON t.teamid = s.teamid
-		WHERE TOTALSALARY is not null
+		WHERE TOTALSALARY IS NOT NULL AND w IS NOT NULL
 		ORDER BY totalsalary DESC
 
 
