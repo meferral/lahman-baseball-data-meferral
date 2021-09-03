@@ -298,12 +298,25 @@ WHERE l>w AND wswin = 'Y')
 	SELECT COUNT(*)
 	FROM WINNERS,
 	COUNT(*) FROM underdog;*/
-	
+
+WITH wswinners AS
+(SELECT
+	yearid,
+	name,
+	wswin,
+	MAX(w) as mostwins
+	FROM teams
+	WHERE yearid BETWEEN 1970 AND 2016
+	GROUP BY yearid, name, wswin
+	ORDER BY mostwins DESC)
+	SELECT
+	COUNT()
+
 SELECT
 	yearid,
 	name,
 	wswin,
-	MAX(w)
+	MAX(w) as mostwins
 	FROM teams
 	WHERE yearid BETWEEN 1970 AND 2016
 	GROUP BY yearid, name, wswin
@@ -345,28 +358,37 @@ namegiven
 FROM people
 where namegiven = 'Anthony'
 
+--Which managers have won the TSN Manager of the Year 
+--award in both the National League (NL) and the American League (AL)? 
+--Give their full name and the teams that they were managing when they won the award.
+-- question about my OR statement- they couldn't of won both in the same year in two different leagues?
+
 WITH goodmanager AS
 (SELECT 
 	am.playerid, 
 	am.lgid,
 	am.yearid,
-	p.namegiven,
+	CONCAT (p.namefirst,' ', p.namelast) AS managername,
 	m.teamid
 FROM awardsmanagers AS am
 JOIN people as p
 ON p.playerid = am.playerid
 JOIN managers AS m
 ON m.playerid = p.playerid
-WHERE awardid = 'TSN Manager of the Year' and am.lgid = 'AL' OR am.lgid = 'NL')
-	SELECT DISTINCT(namegiven),
+WHERE awardid = 'TSN Manager of the Year' AND am.lgid = 'AL' OR am.lgid = 'NL')
+	SELECT DISTINCT(managername),
 	gm.yearid,
 	gm.lgid,
 	t.name
 	FROM goodmanager as gm
 	JOIN teams AS t
 	ON gm.teamid = t.teamid
+	ORDER BY managername IN --(select managername
+							--from goodmanager
+							--where am.lgid = 'AL' AND am.lgid = 'NL')
 	
 	
+SELECT * FROM PEOPLE	
 select * from teams
 select * from managers
 --- EXTRA
