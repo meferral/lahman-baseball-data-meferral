@@ -210,7 +210,7 @@ WITH sohr_game AS
 WITH stolen_success AS
 (SELECT
 b.playerid,
-p.namegiven,
+CONCAT (p.namefirst,' ', p.namelast) AS play_name,
 b.sb::NUMERIC,
 b.cs,
 b.cs + b.sb::NUMERIC AS attempts 
@@ -220,7 +220,7 @@ ON b.playerid = p.playerid
 WHERE yearid = 2016 AND sb > 20)
 	SELECT
 	playerid,
-	namegiven,
+	play_name,
 	sb,
 	cs,
 	ROUND(sb/attempts*100,2) AS per_successful
@@ -378,8 +378,8 @@ ON m.playerid = p.playerid
 WHERE awardid = 'TSN Manager of the Year' AND am.lgid = 'AL' OR am.lgid = 'NL')
 	SELECT DISTINCT(managername),
 	gm.yearid,
-	gm.lgid,
-	t.name
+	gm.lgid
+	--t.name
 	FROM goodmanager as gm
 	JOIN teams AS t
 	ON gm.teamid = t.teamid
@@ -394,7 +394,7 @@ select * from managers
 --- EXTRA
 SELECT 
 s.schoolname,
-COUNT(hof.playerid)
+COUNT (DISTINCT hof.playerid)
 FROM schools AS s
 JOIN collegeplaying AS cp
 ON s.schoolid = cp.schoolid
