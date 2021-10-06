@@ -1,65 +1,12 @@
-SELECT *
-FROM allstarfull;
-
-select distinct(playerid)
-from managers;
-
-select count(playerid)
-from managers;
-
-SELECT count(*)
-FROM allstarfull;
-
-select *
-from salaries;
 
 
-select max(salary)
-from salaries;
-
-select min(salary)
-from salaries;.
-
-select *
-from collegeplaying;
-
-SELECT MIN(yearid)
-FROM salaries
-
+/*  1. What range of years for baseball games played does the provided database cover?*/
 -- Better Answer
-SELECT MAX(yearid), MIN(yearid) FROM teams 
----1
+SELECT MAX(yearid), MIN(yearid) FROM teams
 
-SELECT *
-FROM people;
-
-SELECT MAX(debut)
-FROM people;
-
----2
-SELECT
-namegiven,
-height
-FROM people
-order by height asc;
-
-SELECT
-namegiven,
-height
-FROM people;
-
-SELECT *
-FROM people
-WHERE namegiven = 'Edward Carl';
-
-SELECT *
-FROM APPEARANCES
-WHERE playerid ='gaedeed01';
-
-SELECT *
-FROM teams
-WHERE teamid = 'SLA';
-
+ /*2. Find the name and height of the shortest player in the database.
+ How many games did he play in? What is the name of the
+ team for which he played?*/
 --- BETTER WAY
 SELECT
 namegiven,
@@ -72,9 +19,12 @@ INNER JOIN appearances AS a
 ON p.playerid = a.playerid
 ORDER BY height
 LIMIT 1
----3
-
-SELECT 
+/*3.  Find all players in the database who played at Vanderbilt University.
+Create a list showing each player’s first and last names as well as the
+total salary they earned in the major leagues. Sort this list in
+descending order by the total salary earned. Which Vanderbilt player earned
+ the most money in the majors?   */
+SELECT
 c.schoolid,
 s.salary,
 p.namegiven
@@ -88,7 +38,7 @@ AND s.salary IS NOT NULL
 GROUP BY p.namegiven, c.schoolid,s.salary
 ORDER BY s.salary DESC;
 
-SELECT 
+SELECT
 c.schoolid,
 p.namegiven,
 SUM(s.salary) over (PARTITION BY p.namegiven) AS majorsalary
@@ -114,43 +64,13 @@ WHERE p.playerid IN (SELECT cp.playerid
 GROUP BY play_name
 ORDER BY total_earned DESC
 
+/* 4.Using the fielding table, group players into three groups based on
+their position: label players with position OF as "Outfield",
+those with position "SS", "1B", "2B", and "3B" as "Infield",
+and those with position "P" or "C" as "Battery". Determine the number
+ of putouts made by each of these three groups in 2016. */
 
-select 
-	p.namefirst,
-	p.namelast,
-	SUM(DISTINCT salary) AS s1, s2.schoolname
-FROM people AS p
 
-
-select * from collegeplaying
-
-/*--SELECT 
-SUM(s.salary) AS sumsalary,
-p.namegiven
-FROM collegeplaying as c
-LEFT JOIN salaries as s
-ON c.playerid = s.playerid
-JOIN people as p
-ON p.playerid = c.playerid
-WHERE c.schoolid = 'vandy'
-ORDER BY sumsalary DESC
-GROUP BY p.namegiven;*/
-
---- 4
-
-SELECT *
-FROM fielding;
-
-/*SELECT
-SUM(PO),
-(SELECT CASE WHEN pos = 'OF' THEN 'Outfield'
-		WHEN pos = 'SS' or pos = '1B' or pos = '2B' or pos = '3B' THEN 'Infield'
-		WHEN pos = 'P' or pos = 'C' THEN 'Battery'
-		END AS "positions")
-		FROM fielding
-		WHERE yearid = 2016
-		GROUP BY pos;*/
-			
 SELECT
 SUM(PO),
 (SELECT CASE WHEN pos IN ('OF') THEN 'Outfield'
@@ -159,7 +79,7 @@ SUM(PO),
 	 	END AS position_group)
 		FROM fielding
 		WHERE yearid = 2016
-		GROUP BY position_group;		
+		GROUP BY position_group;
 
 --Derek's Code
 /*WITH positions AS (
@@ -172,31 +92,13 @@ SUM(PO),
 	 	END AS position_group
 FROM fielding)
 
-SELECT
-	p.position_group,
-	SUM(po) AS total_putouts
-FROM positions as p
-WHERE yearid = '2016'
-GROUP BY position_group;*/
-		
-		
-----5		
-
-select 
-yearid ,
-hr,
-so,
-soa,
-g
-from teams
-where yearid BETWEEN 1920 AND 1929;
-
-select *
-from teams
+/*5. Find the average number of strikeouts per game by decade since 1920.
+Round the numbers you report to 2 decimal places. Do the same for home
+runs per game. Do you see any trends? */
 
 WITH sohr_game AS
-(SELECT 
- 	FLOOR(yearid/10) * 10 AS decade,	
+(SELECT
+ 	FLOOR(yearid/10) * 10 AS decade,
  	ROUND(AVG(soa+so),2) AS avg_strikeouts,
 	ROUND(AVG(hr),2) AS avg_homeruns
 	FROM teams
@@ -205,15 +107,20 @@ WITH sohr_game AS
 		FROM sohr_game
 		WHERE decade >= 1920
 		ORDER BY decade ASC;
-		
----6
+
+/* 6. Find the player who had the most success stealing bases in 2016,
+where success is measured as the percentage of stolen base attempts which
+are successful. (A stolen base attempt results either in a stolen base or
+being caught stealing.) Consider only players who attempted at
+ least 20 stolen bases. */
+
 WITH stolen_success AS
 (SELECT
 b.playerid,
 CONCAT (p.namefirst,' ', p.namelast) AS play_name,
 b.sb::NUMERIC,
 b.cs,
-b.cs + b.sb::NUMERIC AS attempts 
+b.cs + b.sb::NUMERIC AS attempts
 FROM batting AS b
 JOIN people AS p
 ON b.playerid = p.playerid
@@ -226,14 +133,17 @@ WHERE yearid = 2016 AND sb > 20)
 	ROUND(sb/attempts*100,2) AS per_successful
 	FROM stolen_success
 	ORDER BY per_successful DESC;
-	
-	
 
-select * from batting
+/*7.From 1970 – 2016, what is the largest number of wins for a team that
+did not win the world series? What is the smallest number of wins for a team
+that did win the world series? Doing this will probably result in an unusually
+small number of wins for a world series champion – determine why this
+is the case. Then redo your query, excluding the problem year.
+How often from 1970 – 2016 was it the case that a team with the most
+wins also won the world series? What percentage of the time?  */
 
----7
 WITH wsloser AS
-(SELECT 
+(SELECT
  	YEARid,
 	name,
 	W,
@@ -248,7 +158,7 @@ WHERE WSwin IS NOT NULL AND yearID BETWEEN 1970 AND 2016)
 -- SEATTLE MARINERS IS THE TEAM
 
 WITH wswinner AS
-(SELECT 
+(SELECT
  	yearID,
 	name,
 	W,
@@ -263,7 +173,7 @@ WHERE WSwin IS NOT NULL AND yearID BETWEEN 1970 AND 2016)
 ---LA DODGERS IS THE TEAM
 --- code with no year parameter
 WITH wswinner AS
-(SELECT 
+(SELECT
  	yearID,
 	name,
 	W,
@@ -275,29 +185,6 @@ WHERE WSwin IS NOT NULL)
 	FROM wswinner
 	WHERE wswin = 'Y'
 	ORDER BY w ASC;
-
-
-/*WITH winners AS
-(SELECT 
- 	yearID,
-	name,
-	W,
-	L,
-	WSWin
-FROM teams
-WHERE w>l AND wswin = 'Y'),
-underdog AS 
-(SELECT 
- 	yearID,
-	name,
-	W,
-	L,
-	WSWin
-FROM teams
-WHERE l>w AND wswin = 'Y')
-	SELECT COUNT(*)
-	FROM WINNERS,
-	COUNT(*) FROM underdog;*/
 
 WITH wswinners AS
 (SELECT
@@ -320,9 +207,15 @@ SELECT
 	FROM teams
 	WHERE yearid BETWEEN 1970 AND 2016
 	GROUP BY yearid, name, wswin
-	
-----8
-SELECT 
+
+/*  8. Using the attendance figures from the homegames table, find the
+teams and parks which had the top 5 average attendance per game in 2016
+(where average attendance is defined as total attendance divided by
+number of games). Only consider parks where there were at least 10 games
+played. Report the park name, team name, and average attendance.
+Repeat for the lowest 5 average attendance*/
+
+SELECT
 	h.team,
 	h.park,
 	h.attendance/h.games as avg_attendance,
@@ -334,7 +227,7 @@ WHERE year = 2016 AND games > 10
 ORDER BY avg_attendance DESC LIMIT 5
 
 
-SELECT 
+SELECT
 	h.team,
 	h.park,
 	h.attendance/h.games as avg_attendance,
@@ -353,46 +246,14 @@ select * from TEAMS
 SELECT *
 FROM managers
 
-SELECT 
+SELECT
 namegiven
 FROM people
 where namegiven = 'Anthony'
 
---Which managers have won the TSN Manager of the Year 
---award in both the National League (NL) and the American League (AL)? 
---Give their full name and the teams that they were managing when they won the award.
--- question about my OR statement- they couldn't of won both in the same year in two different leagues?
 
-WITH goodmanager AS
-(SELECT 
-	am.playerid, 
-	am.lgid,
-	am.yearid,
-	CONCAT (p.namefirst,' ', p.namelast) AS managername,
-	m.teamid
-FROM awardsmanagers AS am
-JOIN people as p
-ON p.playerid = am.playerid
-JOIN managers AS m
-ON m.playerid = p.playerid
-WHERE awardid = 'TSN Manager of the Year' AND am.lgid = 'AL' OR am.lgid = 'NL')
-	SELECT DISTINCT(managername),
-	gm.yearid,
-	gm.lgid
-	--t.name
-	FROM goodmanager as gm
-	JOIN teams AS t
-	ON gm.teamid = t.teamid
-	ORDER BY managername IN --(select managername
-							--from goodmanager
-							--where am.lgid = 'AL' AND am.lgid = 'NL')
-	
-	
-SELECT * FROM PEOPLE	
-select * from teams
-select * from managers
 --- EXTRA
-SELECT 
+SELECT
 s.schoolname,
 COUNT (DISTINCT hof.playerid)
 FROM schools AS s
@@ -414,7 +275,7 @@ from schools
 --- EXTRA
 
 WITH salaries AS
-(SELECT 
+(SELECT
 Teamid,
 sum(salary) as totalsalary,
 yearid
@@ -432,13 +293,3 @@ GROUP BY CUBE (yearid, teamid) ORDER BY totalsalary DESC)
 		ON t.teamid = s.teamid
 		WHERE TOTALSALARY IS NOT NULL AND w IS NOT NULL
 		ORDER BY totalsalary DESC
-
-
-
-select *
-from salaries
-
-
-select *
-from teams
-
