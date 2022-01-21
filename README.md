@@ -1,4 +1,4 @@
-## Lahman Baseball Database Exercise- This was an individual exercise answeing the following prompts using postgreSQL.  
+## Lahman Baseball Database Exercise- This was an individual exercise answering the following prompts using postgreSQL.  
 - this data has been made available [online](http://www.seanlahman.com/baseball-archive/statistics/) by Sean Lahman
 - you can find a data dictionary [here](http://www.seanlahman.com/files/database/readme2016.txt)
 
